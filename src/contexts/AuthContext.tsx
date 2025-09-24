@@ -44,27 +44,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error
       }
       console.log('✅ Profile fetched successfully:', data)
-        console.error('❌ Profile fetch error:', error)
-        throw error
-      }
-      console.log('✅ Profile fetched successfully:', data)
       setProfile(data)
     } catch (error) {
       console.error('❌ Profile fetch failed:', error)
-        setUser(null)
-        setProfile(null)
-        setLoading(false)
-        return
-      }
-      
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id)
-      }
-      setLoading(false)
-    })
-      console.error('❌ Profile fetch failed:', error.message, error);
       setProfile(null)
     }
   }
