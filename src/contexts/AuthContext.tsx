@@ -31,16 +31,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('🔄 Starting profile fetch for user ID:', userId)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
       
-      if (error) throw error
+      if (error) {
+        console.error('❌ Profile fetch error:', error)
+        throw error
+      }
+      console.log('✅ Profile fetched successfully:', data)
       setProfile(data)
     } catch (error) {
-      console.error('Error fetching profile:', error)
+      console.error('❌ Profile fetch failed:', error)
+      console.error('❌ Profile fetch failed:', error.message, error);
       setProfile(null)
     }
   }
@@ -75,6 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('👤 User logged out, clearing profile...')
           setProfile(null)
         }
+        console.log('DEBUG: Setting loading to false. Current user:', session?.user ? 'exists' : 'null');
         setLoading(false)
       }
     )
