@@ -32,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchProfile = async (userId: string) => {
     try {
       console.log('🔄 Starting profile fetch for user ID:', userId)
+      console.log('🔄 Starting profile fetch for user ID:', userId)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -43,9 +44,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error
       }
       console.log('✅ Profile fetched successfully:', data)
+        console.error('❌ Profile fetch error:', error)
+        throw error
+      }
+      console.log('✅ Profile fetched successfully:', data)
       setProfile(data)
     } catch (error) {
       console.error('❌ Profile fetch failed:', error)
+        setUser(null)
+        setProfile(null)
+        setLoading(false)
+        return
+      }
+      
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+      }
+      setLoading(false)
+    })
       console.error('❌ Profile fetch failed:', error.message, error);
       setProfile(null)
     }
@@ -72,6 +90,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔄 Auth state change:', { event, session: session ? 'exists' : 'null' })
+        
+        // Handle specific auth events
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('✅ Token refreshed successfully')
+        } else if (event === 'SIGNED_OUT') {
+          console.log('👋 User signed out')
+        }
+        
         setSession(session)
         setUser(session?.user ?? null)
         if (session?.user) {
