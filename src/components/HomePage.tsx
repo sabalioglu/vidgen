@@ -1,11 +1,11 @@
 import React from 'react'
-import { ArrowRight, Video, Zap, Download, Star, Users, Clock } from 'lucide-react'
+import { ArrowRight, Video, Zap, Download, Star, Users, Clock, CheckCircle2, Sparkles } from 'lucide-react'
 
-interface HomePageProps {
-  onNavigate: (page: string) => void
-}
+export const HomePage: React.FC = () => {
+  const handleGetStarted = () => {
+    alert('Get started functionality will be implemented here!')
+  }
 
-export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-teal-50">
       {/* Hero Section */}
@@ -28,7 +28,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
               <button
-                onClick={() => onNavigate('signup')}
+                onClick={handleGetStarted}
                 className="flex items-center space-x-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-600 text-white text-lg font-semibold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
               >
                 <span>Get Started for Free</span>
@@ -41,7 +41,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <span>5 free credits • No credit card required</span>
+                <span>No credit card required • Start creating instantly</span>
               </div>
             </div>
 
@@ -82,7 +82,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       </div>
 
       {/* How It Works Section */}
-      <div className="bg-white py-20">
+      <div id="features" className="bg-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -148,6 +148,92 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </div>
 
+      {/* Features Section */}
+      <div className="bg-gradient-to-br from-gray-50 to-purple-50 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Powerful Features
+            </h2>
+            <p className="text-xl text-gray-600">
+              Everything you need to create stunning video advertisements
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">AI-Powered Generation</h3>
+              <p className="text-gray-600">Advanced machine learning algorithms create compelling video content that resonates with your audience.</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Lightning Fast</h3>
+              <p className="text-gray-600">Generate professional-quality videos in under 30 seconds. No more waiting hours for rendering.</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center mb-4">
+                <CheckCircle2 className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">High Quality Output</h3>
+              <p className="text-gray-600">Export in multiple formats and resolutions, optimized for different social media platforms.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Pricing Section */}
+      <div id="pricing" className="bg-white py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            Simple, Transparent Pricing
+          </h2>
+          <p className="text-xl text-gray-600 mb-12">
+            Start for free, upgrade when you need more
+          </p>
+
+          <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-8 max-w-md mx-auto">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Pay Per Video</h3>
+              <div className="text-4xl font-bold text-purple-600 mb-2">$9.99</div>
+              <p className="text-gray-600">Per video generated</p>
+            </div>
+            
+            <ul className="space-y-3 mb-8 text-left">
+              <li className="flex items-center space-x-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span className="text-gray-700">High-quality AI video generation</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span className="text-gray-700">Multiple export formats</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span className="text-gray-700">Commercial usage rights</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span className="text-gray-700">No monthly commitments</span>
+              </li>
+            </ul>
+            
+            <button
+              onClick={handleGetStarted}
+              className="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200"
+            >
+              Try It Free
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* CTA Section */}
       <div className="bg-gradient-to-br from-purple-600 via-blue-600 to-teal-600 py-20">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
@@ -158,7 +244,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             Join thousands of creators who are already making stunning video ads with AI
           </p>
           <button
-            onClick={() => onNavigate('signup')}
+            onClick={handleGetStarted}
             className="px-8 py-4 bg-white text-purple-600 text-lg font-semibold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
           >
             Start Creating for Free
