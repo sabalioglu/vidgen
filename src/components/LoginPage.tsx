@@ -19,11 +19,11 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const success = await login(email, password);
-      if (success) {
+      const result = await login(email, password);
+      if (result.success) {
         navigate('/dashboard');
       } else {
-        setError('Invalid email or password');
+        setError(result.error || 'Login failed');
       }
     } catch (err) {
       setError('An error occurred during login');
@@ -133,7 +133,7 @@ export const LoginPage: React.FC = () => {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Demo accounts: admin@demo.com / password
+              Need an account? Sign up to get started with 5 free credits!
             </p>
           </div>
         </div>

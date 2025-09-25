@@ -1,123 +1,223 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '../lib/supabase';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
+import type { Profile } from '../lib/supabase';
 
 interface User {
   id: string;
   email: string;
   name: string;
   credits: number;
+  telegramConnected: boolean;
+  telegramConnectionKey: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Simple user storage simulation
-const USERS_KEY = 'videogen_users';
-const SESSION_KEY = 'videogen_session';
-
-interface StoredUser {
-  id: string;
-  email: string;
-  name: string;
-  password: string;
-  credits: number;
-}
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Load session on mount
-  useEffect(() => {
-    const sessionData = localStorage.getItem(SESSION_KEY);
-    if (sessionData) {
-      try {
-        const session = JSON.parse(sessionData);
-        const users = getUsers();
-        const foundUser = users.find(u => u.id === session.userId);
-        if (foundUser) {
-          setUser({
-            id: foundUser.id,
-            email: foundUser.email,
-            name: foundUser.name,
-            credits: foundUser.credits
-          });
-        }
-      } catch (error) {
-        localStorage.removeItem(SESSION_KEY);
+  // Transform Supabase user + profile data to our User interface
+  const transformUser = (authUser: SupabaseUser, profile: Profile): User => ({
+    id: authUser.id,
+    email: authUser.email || profile.email,
+    name: authUser.user_metadata?.name || profile.email.split('@')[0], // Fallback to email prefix
+    credits: profile.credits,
+    telegramConnected: profile.telegram_connected,
+    telegramConnectionKey: profile.telegram_connection_key,
+  });
+
+  // Get user profile from database
+  const getUserProfile = async (userId: string): Promise<Profile | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
       }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      return null;
     }
-  }, []);
-
-  const getUsers = (): StoredUser[] => {
-    const users = localStorage.getItem(USERS_KEY);
-    return users ? JSON.parse(users) : [];
   };
 
-  const saveUsers = (users: StoredUser[]) => {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  };
+  // Create user profile after registration
+  const createUserProfile = async (authUser: SupabaseUser, name: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .insert({
+          id: authUser.id,
+          email: authUser.email!,
+          credits: 5, // Start with 5 free credits
+        });
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    const users = getUsers();
-    const foundUser = users.find(u => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const userData = {
-        id: foundUser.id,
-        email: foundUser.email,
-        name: foundUser.name,
-        credits: foundUser.credits
-      };
-      
-      setUser(userData);
-      localStorage.setItem(SESSION_KEY, JSON.stringify({ userId: foundUser.id }));
+      if (error) {
+        console.error('Error creating profile:', error);
+        return false;
+      }
+
       return true;
-    }
-    
-    return false;
-  };
-
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
-    const users = getUsers();
-    
-    // Check if user already exists
-    if (users.some(u => u.email === email)) {
+    } catch (error) {
+      console.error('Error creating profile:', error);
       return false;
     }
-    
-    const newUser: StoredUser = {
-      id: Date.now().toString() + Math.random().toString(36),
-      email,
-      name,
-      password,
-      credits: 5 // Start with 5 free credits
-    };
-    
-    users.push(newUser);
-    saveUsers(users);
-    
-    // Auto login after registration
-    const userData = {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name,
-      credits: newUser.credits
-    };
-    
-    setUser(userData);
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ userId: newUser.id }));
-    return true;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem(SESSION_KEY);
+  // Initialize auth state
+  useEffect(() => {
+    // Get initial session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+
+        if (session?.user) {
+          const profile = await getUserProfile(session.user.id);
+          if (profile) {
+            setUser(transformUser(session.user, profile));
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        const profile = await getUserProfile(session.user.id);
+        if (profile) {
+          setUser(transformUser(session.user, profile));
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('Login error:', error);
+        return { 
+          success: false, 
+          error: error.message === 'Invalid login credentials' 
+            ? 'Invalid email or password' 
+            : error.message 
+        };
+      }
+
+      if (data.user) {
+        const profile = await getUserProfile(data.user.id);
+        if (profile) {
+          setUser(transformUser(data.user, profile));
+          return { success: true };
+        } else {
+          return { success: false, error: 'Failed to load user profile' };
+        }
+      }
+
+      return { success: false, error: 'Login failed' };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: 'An unexpected error occurred' };
+    }
+  };
+
+  const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+          }
+        }
+      });
+
+      if (error) {
+        console.error('Registration error:', error);
+        return { 
+          success: false, 
+          error: error.message.includes('already registered') 
+            ? 'An account with this email already exists' 
+            : error.message 
+        };
+      }
+
+      if (data.user) {
+        // Create profile record
+        const profileCreated = await createUserProfile(data.user, name);
+        if (!profileCreated) {
+          return { success: false, error: 'Failed to create user profile' };
+        }
+
+        // If email confirmation is disabled, user will be signed in automatically
+        if (data.session) {
+          const profile = await getUserProfile(data.user.id);
+          if (profile) {
+            setUser(transformUser(data.user, profile));
+          }
+        }
+
+        return { success: true };
+      }
+
+      return { success: false, error: 'Registration failed' };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { success: false, error: 'An unexpected error occurred' };
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+      }
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+      setUser(null); // Clear user state even if logout fails
+    }
   };
 
   return (
@@ -127,7 +227,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         register,
         logout,
-        isAuthenticated: !!user
+        isAuthenticated: !!user,
+        loading,
       }}
     >
       {children}

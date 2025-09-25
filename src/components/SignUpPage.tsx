@@ -32,11 +32,11 @@ export const SignUpPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const success = await register(name, email, password);
-      if (success) {
+      const result = await register(name, email, password);
+      if (result.success) {
         navigate('/dashboard');
       } else {
-        setError('An account with this email already exists');
+        setError(result.error || 'Registration failed');
       }
     } catch (err) {
       setError('An error occurred during registration');

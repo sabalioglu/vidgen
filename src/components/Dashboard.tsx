@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Video, Plus, Coins, User, LogOut, Play, Download, Calendar } from 'lucide-react';
+import { Video, Plus, Coins, User, LogOut, Play, Download, Calendar, MessageCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -39,8 +39,9 @@ export const Dashboard: React.FC = () => {
   ]);
 
   const handleLogout = () => {
-    logout();
-    navigate('/');
+    logout().then(() => {
+      navigate('/');
+    });
   };
 
   const handleCreateVideo = async () => {
@@ -95,6 +96,18 @@ export const Dashboard: React.FC = () => {
                 <Coins className="w-4 h-4 text-purple-600" />
                 <span className="text-sm font-medium text-purple-700">{user?.credits} credits</span>
               </div>
+              
+              {user?.telegramConnected ? (
+                <div className="flex items-center space-x-2 px-3 py-2 bg-green-50 rounded-lg">
+                  <MessageCircle className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-700">Telegram Connected</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 px-3 py-2 bg-yellow-50 rounded-lg">
+                  <MessageCircle className="w-4 h-4 text-yellow-600" />
+                  <span className="text-sm font-medium text-yellow-700">Connect Telegram</span>
+                </div>
+              )}
               
               <div className="flex items-center space-x-2">
                 <User className="w-4 h-4 text-gray-600" />
