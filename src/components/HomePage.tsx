@@ -1,9 +1,18 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Video, Zap, Download, Star, Users, Clock, CheckCircle2, Sparkles } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 
 export const HomePage: React.FC = () => {
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+
   const handleGetStarted = () => {
-    alert('Get started functionality will be implemented here!')
+    if (isAuthenticated) {
+      navigate('/dashboard')
+    } else {
+      navigate('/signup')
+    }
   }
 
   return (
